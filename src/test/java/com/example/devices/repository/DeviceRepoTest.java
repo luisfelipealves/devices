@@ -1,6 +1,7 @@
 package com.example.devices.repository;
 
 import com.example.devices.entity.Device;
+import com.example.devices.enumerate.DeviceState;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,7 +45,7 @@ class DeviceRepoTest {
         device.setName("Find Me");
         device.setBrand("Brand X");
         device.setCreationTime(LocalDateTime.now());
-        Device savedDevice = deviceRepo.save(device);
+        deviceRepo.save(device);
 
         Optional<Device> foundDevice = deviceRepo.findDeviceByDeviceUuid(deviceUuid);
         assertTrue(foundDevice.isPresent());
@@ -102,6 +103,74 @@ class DeviceRepoTest {
 
         assertEquals("Updated Name", updatedDevice.getName());
         assertEquals("Updated Brand", updatedDevice.getBrand());
+    }
+    @Test
+    void testFindByBrand() {
+        deviceRepo.deleteAll();
+        String brandName = "BrandForSearch";
+        Device device1 = new Device();
+        device1.setDeviceUuid(UUID.randomUUID());
+        device1.setName("Device A");
+        device1.setBrand(brandName);
+        device1.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device1);
+
+        Device device2 = new Device();
+        device2.setDeviceUuid(UUID.randomUUID());
+        device2.setName("Device B");
+        device2.setBrand(brandName);
+        device2.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device2);
+
+        Device device3 = new Device();
+        device3.setDeviceUuid(UUID.randomUUID());
+        device3.setName("Device C");
+        device3.setBrand("Other Brand");
+        device3.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device3);
+
+        List<Device> devicesByBrand = deviceRepo.findByBrand(brandName);
+        assertNotNull(devicesByBrand);
+        assertEquals(2, devicesByBrand.size());
+        assertTrue(devicesByBrand.stream().allMatch(device -> device.getBrand().equals(brandName)));
+    }
+
+    @Test
+    void testFindByState() {
+
+        Device device1 = new Device();
+        device1.setDeviceUuid(UUID.randomUUID());
+        device1.setName("Device A");
+        device1.setBrand("Brand A");
+        device1.setState(DeviceState.AVAILABLE);
+        device1.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device1);
+
+        Device device2 = new Device();
+        device2.setDeviceUuid(UUID.randomUUID());
+        device2.setName("Device B");
+        device2.setBrand("Brand B");
+        device2.setState(DeviceState.AVAILABLE);
+        device2.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device2);
+
+        Device device3 = new Device();
+        device3.setDeviceUuid(UUID.randomUUID());
+        device3.setName("Device C");
+        device3.setBrand("Brand C");
+        device3.setState(DeviceState.INACTIVE);
+        device3.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device3);
+
+        List<Device> activeDevices = deviceRepo.findByState(DeviceState.AVAILABLE);
+        assertNotNull(activeDevices);
+        assertEquals(2, activeDevices.size());
+        assertTrue(activeDevices.stream().allMatch(device -> device.getState().equals(DeviceState.AVAILABLE)));
+
+        List<Device> inactiveDevices = deviceRepo.findByState(DeviceState.INACTIVE);
+        assertNotNull(inactiveDevices);
+        assertEquals(1, inactiveDevices.size());
+        assertTrue(inactiveDevices.stream().allMatch(device -> device.getState().equals(DeviceState.INACTIVE)));
     }
 
 }
