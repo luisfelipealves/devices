@@ -5,6 +5,7 @@ import com.example.devices.enumerate.DeviceState;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -171,6 +172,26 @@ class DeviceRepoTest {
         assertNotNull(inactiveDevices);
         assertEquals(1, inactiveDevices.size());
         assertTrue(inactiveDevices.stream().allMatch(device -> device.getState().equals(DeviceState.INACTIVE)));
+    }
+
+    @Test
+    @Transactional
+    void testDeleteDeviceByDeviceUuid() {
+        UUID deviceUuidToDelete = UUID.randomUUID();
+        Device device = new Device();
+        device.setDeviceUuid(deviceUuidToDelete);
+        device.setName("Device to Delete by UUID");
+        device.setBrand("Brand D");
+        device.setCreationTime(LocalDateTime.now());
+        deviceRepo.save(device);
+
+        Optional<Device> foundBeforeDelete = deviceRepo.findDeviceByDeviceUuid(deviceUuidToDelete);
+        assertTrue(foundBeforeDelete.isPresent());
+
+        deviceRepo.deleteDeviceByDeviceUuid(deviceUuidToDelete);
+
+        Optional<Device> foundAfterDelete = deviceRepo.findDeviceByDeviceUuid(deviceUuidToDelete);
+        assertFalse(foundAfterDelete.isPresent());
     }
 
 }
