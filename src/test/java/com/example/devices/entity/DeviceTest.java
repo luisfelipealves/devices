@@ -24,11 +24,11 @@ class DeviceTest {
 
     @Test
     void testDeviceBuilder() {
-        UUID deviceUuid = UUID.randomUUID();
+        UUID uuid = UUID.randomUUID();
         LocalDateTime creationTime = LocalDateTime.now();
         Device device = Device.builder()
                 .id(2L)
-                .deviceUuid(deviceUuid)
+                .uuid(uuid)
                 .name("Builder Test Device")
                 .brand("Builder Test Brand")
                 .state(DeviceState.AVAILABLE)
@@ -36,7 +36,7 @@ class DeviceTest {
                 .build();
 
         assertEquals(2L, device.getId());
-        assertEquals(deviceUuid, device.getDeviceUuid());
+        assertEquals(uuid, device.getUuid());
         assertEquals("Builder Test Device", device.getName());
         assertEquals("Builder Test Brand", device.getBrand());
         assertEquals(DeviceState.AVAILABLE, device.getState());

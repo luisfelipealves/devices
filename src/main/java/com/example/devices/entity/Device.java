@@ -26,7 +26,7 @@ public class Device {
     private Long id;
     
     @Column(name = "uuid", unique = true, nullable = false)
-    private UUID deviceUuid;
+    private UUID uuid;
 
     private String name;
 

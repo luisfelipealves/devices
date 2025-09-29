@@ -28,7 +28,7 @@ class DeviceRepoTest {
     @Test
     void testSaveDevice() {
         Device device = new Device();
-        device.setDeviceUuid(java.util.UUID.randomUUID());
+        device.setUuid(java.util.UUID.randomUUID());
         device.setName("Test Device");
         device.setBrand("Test Brand");
         device.setCreationTime(LocalDateTime.now());
@@ -42,13 +42,13 @@ class DeviceRepoTest {
     void testFindByUuid() {
         UUID deviceUuid = UUID.randomUUID();
         Device device = new Device();
-        device.setDeviceUuid(deviceUuid);
+        device.setUuid(deviceUuid);
         device.setName("Find Me");
         device.setBrand("Brand X");
         device.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device);
 
-        Optional<Device> foundDevice = deviceRepo.findDeviceByDeviceUuid(deviceUuid);
+        Optional<Device> foundDevice = deviceRepo.findDeviceByUuid(deviceUuid);
         assertTrue(foundDevice.isPresent());
         assertEquals("Find Me", foundDevice.get().getName());
     }
@@ -57,14 +57,14 @@ class DeviceRepoTest {
     void testFindAll() {
         deviceRepo.deleteAll(); // Clear existing data for consistent test
         Device device1 = new Device();
-        device1.setDeviceUuid(java.util.UUID.randomUUID());
+        device1.setUuid(java.util.UUID.randomUUID());
         device1.setName("Device 1");
         device1.setBrand("Brand A");
         device1.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device1);
 
         Device device2 = new Device();
-        device2.setDeviceUuid(java.util.UUID.randomUUID());
+        device2.setUuid(java.util.UUID.randomUUID());
         device2.setName("Device 2");
         device2.setBrand("Brand B");
         device2.setCreationTime(LocalDateTime.now());
@@ -78,21 +78,21 @@ class DeviceRepoTest {
     void testDeleteByUuid() {
         UUID deviceUuid = UUID.randomUUID();
         Device device = new Device();
-        device.setDeviceUuid(deviceUuid);
+        device.setUuid(deviceUuid);
         device.setName("Delete Me");
         device.setBrand("Brand Y");
         device.setCreationTime(LocalDateTime.now());
         Device savedDevice = deviceRepo.save(device);
 
         deviceRepo.deleteById(savedDevice.getId());
-        Optional<Device> foundDevice = deviceRepo.findDeviceByDeviceUuid(deviceUuid);
+        Optional<Device> foundDevice = deviceRepo.findDeviceByUuid(deviceUuid);
         assertFalse(foundDevice.isPresent());
     }
 
     @Test
     void testUpdateDevice() {
         Device device = new Device();
-        device.setDeviceUuid(java.util.UUID.randomUUID());
+        device.setUuid(java.util.UUID.randomUUID());
         device.setName("Original Name");
         device.setBrand("Original Brand");
         device.setCreationTime(LocalDateTime.now());
@@ -110,21 +110,21 @@ class DeviceRepoTest {
         deviceRepo.deleteAll();
         String brandName = "BrandForSearch";
         Device device1 = new Device();
-        device1.setDeviceUuid(UUID.randomUUID());
+        device1.setUuid(UUID.randomUUID());
         device1.setName("Device A");
         device1.setBrand(brandName);
         device1.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device1);
 
         Device device2 = new Device();
-        device2.setDeviceUuid(UUID.randomUUID());
+        device2.setUuid(UUID.randomUUID());
         device2.setName("Device B");
         device2.setBrand(brandName);
         device2.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device2);
 
         Device device3 = new Device();
-        device3.setDeviceUuid(UUID.randomUUID());
+        device3.setUuid(UUID.randomUUID());
         device3.setName("Device C");
         device3.setBrand("Other Brand");
         device3.setCreationTime(LocalDateTime.now());
@@ -140,7 +140,7 @@ class DeviceRepoTest {
     void testFindByState() {
 
         Device device1 = new Device();
-        device1.setDeviceUuid(UUID.randomUUID());
+        device1.setUuid(UUID.randomUUID());
         device1.setName("Device A");
         device1.setBrand("Brand A");
         device1.setState(DeviceState.AVAILABLE);
@@ -148,7 +148,7 @@ class DeviceRepoTest {
         deviceRepo.save(device1);
 
         Device device2 = new Device();
-        device2.setDeviceUuid(UUID.randomUUID());
+        device2.setUuid(UUID.randomUUID());
         device2.setName("Device B");
         device2.setBrand("Brand B");
         device2.setState(DeviceState.AVAILABLE);
@@ -156,7 +156,7 @@ class DeviceRepoTest {
         deviceRepo.save(device2);
 
         Device device3 = new Device();
-        device3.setDeviceUuid(UUID.randomUUID());
+        device3.setUuid(UUID.randomUUID());
         device3.setName("Device C");
         device3.setBrand("Brand C");
         device3.setState(DeviceState.INACTIVE);
@@ -176,21 +176,21 @@ class DeviceRepoTest {
 
     @Test
     @Transactional
-    void testDeleteDeviceByDeviceUuid() {
+    void testDeleteDeviceByUuid() {
         UUID deviceUuidToDelete = UUID.randomUUID();
         Device device = new Device();
-        device.setDeviceUuid(deviceUuidToDelete);
+        device.setUuid(deviceUuidToDelete);
         device.setName("Device to Delete by UUID");
         device.setBrand("Brand D");
         device.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device);
 
-        Optional<Device> foundBeforeDelete = deviceRepo.findDeviceByDeviceUuid(deviceUuidToDelete);
+        Optional<Device> foundBeforeDelete = deviceRepo.findDeviceByUuid(deviceUuidToDelete);
         assertTrue(foundBeforeDelete.isPresent());
 
-        deviceRepo.deleteDeviceByDeviceUuid(deviceUuidToDelete);
+        deviceRepo.deleteDeviceByUuid(deviceUuidToDelete);
 
-        Optional<Device> foundAfterDelete = deviceRepo.findDeviceByDeviceUuid(deviceUuidToDelete);
+        Optional<Device> foundAfterDelete = deviceRepo.findDeviceByUuid(deviceUuidToDelete);
         assertFalse(foundAfterDelete.isPresent());
     }
 

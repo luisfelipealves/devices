@@ -8,11 +8,11 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DeviceRepo extends JpaRepository<Device, Long> {
-  Optional<Device> findDeviceByDeviceUuid(UUID deviceUuid);
+  Optional<Device> findDeviceByUuid(UUID deviceUuid);
 
   List<Device> findByBrand(String brand);
 
   List<Device> findByState(DeviceState state);
 
-  void deleteDeviceByDeviceUuid(UUID deviceUuid);
+  void deleteDeviceByUuid(UUID deviceUuid);
 }
