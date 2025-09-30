@@ -1,0 +1,79 @@
+package com.example.devices.integration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import com.example.devices.dto.DeviceDTO;
+import com.example.devices.service.DeviceService;
+import jakarta.validation.ConstraintViolationException;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+@SpringBootTest()
+@ActiveProfiles("test")
+public class DeviceServiceIntegrationTest {
+
+  @Autowired private DeviceService deviceService;
+
+  @Test
+  void createDevice_shouldReturnSavedDevice() {
+    DeviceDTO deviceDto = new DeviceDTO(null, "Test Device", "Test Brand", "AVAILABLE", null);
+    DeviceDTO savedDevice = deviceService.createDevice(deviceDto);
+
+    assertThat(savedDevice).isNotNull();
+    assertThat(savedDevice.uuid()).isNotNull();
+    assertThat(savedDevice.name()).isEqualTo("Test Device");
+    assertThat(savedDevice.brand()).isEqualTo("Test Brand");
+    assertThat(savedDevice.state()).isEqualTo("AVAILABLE");
+  }
+
+  @Test
+  void updateDevice_shouldReturnUpdatedDevice() {
+    DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Old Name", "Old Brand", "AVAILABLE", null);
+    DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
+
+    DeviceDTO updateDeviceDTO =
+        new DeviceDTO(savedDevice.uuid(), "New Name", "New Brand", "IN_USE", null);
+    DeviceDTO updatedDevice = deviceService.updateDevice(updateDeviceDTO);
+
+    assertThat(updatedDevice).isNotNull();
+    assertThat(updatedDevice.uuid()).isEqualTo(savedDevice.uuid());
+    assertThat(updatedDevice.name()).isEqualTo("New Name");
+    assertThat(updatedDevice.brand()).isEqualTo("New Brand");
+    assertThat(updatedDevice.state()).isEqualTo("IN_USE");
+  }
+
+  @Test
+  void updateDevice_shouldThrowExceptionWhenNameIsInvalid() {
+    DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Valid Name", "Valid Brand", "IN_USE", null);
+    DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
+
+    DeviceDTO invalidUpdateDeviceDTO =
+        new DeviceDTO(savedDevice.uuid(), "Valid Name", "New Brand", "IN_USE", null);
+
+    ConstraintViolationException constraintViolationException =
+        assertThrows(
+            ConstraintViolationException.class,
+            () -> deviceService.updateDevice(invalidUpdateDeviceDTO));
+
+    assertEquals(
+        "updateDevice.device: Name and brand proper:es cannot be updated if the device is in use",
+        constraintViolationException.getMessage());
+  }
+
+  @Test
+  void getDeviceByUuid_shouldReturnDevice() {
+    DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Find Me", "Search Brand", "AVAILABLE", null);
+    DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
+
+    DeviceDTO foundDevice = deviceService.getDeviceByUuid(UUID.fromString(savedDevice.uuid()));
+
+    assertThat(foundDevice).isNotNull();
+    assertThat(foundDevice.uuid()).isEqualTo(savedDevice.uuid());
+    assertThat(foundDevice.name()).isEqualTo("Find Me");
+  }
+}

@@ -13,8 +13,10 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 @Service
+@Validated
 public class DeviceServiceImpl implements DeviceService {
 
   private final DeviceRepo deviceRepo;
@@ -57,8 +59,10 @@ public class DeviceServiceImpl implements DeviceService {
 
   @Override
   public DeviceDTO getDeviceByUuid(UUID uuid) {
-    return deviceMapper.toDto(deviceRepo.findDeviceByUuid(uuid)
-        .orElseThrow(() -> new EntityNotFoundException("Device not found with UUID: " + uuid)));
+    return deviceMapper.toDto(
+        deviceRepo
+            .findDeviceByUuid(uuid)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found with UUID: " + uuid)));
   }
 
   @Override
