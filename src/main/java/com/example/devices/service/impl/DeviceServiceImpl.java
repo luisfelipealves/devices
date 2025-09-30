@@ -1,6 +1,7 @@
 package com.example.devices.service.impl;
 
 import com.example.devices.dto.DeviceDTO;
+import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
 import com.example.devices.mapper.DeviceMapper;
@@ -42,14 +43,11 @@ public class DeviceServiceImpl implements DeviceService {
 
   @Override
   @Transactional
-  public DeviceDTO updateDevice(DeviceDTO deviceDTO) {
+  public DeviceDTO updateDevice(UpdateDeviceDTO deviceDTO) {
     Device existingDevice =
         deviceRepo
             .findDeviceByUuid(UUID.fromString(deviceDTO.uuid()))
-            .orElseThrow(
-                () ->
-                    new EntityNotFoundException("Device not found with UUID: " + deviceDTO.uuid()));
-
+            .orElseThrow(() -> new EntityNotFoundException("Device not found with UUID: " + deviceDTO.uuid()));
     existingDevice.setName(deviceDTO.name());
     existingDevice.setBrand(deviceDTO.brand());
     existingDevice.setState(DeviceState.valueOf(deviceDTO.state()));
@@ -83,7 +81,7 @@ public class DeviceServiceImpl implements DeviceService {
 
   @Override
   @Transactional
-  public void deleteDevice(UUID uuid) {
-    deviceRepo.deleteDeviceByUuid(uuid);
+  public void deleteDevice(String deviceUuid) {
+    deviceRepo.deleteDeviceByUuid(UUID.fromString(deviceUuid));
   }
 }

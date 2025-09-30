@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.devices.dto.DeviceDTO;
+import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
 import com.example.devices.mapper.DeviceMapper;
@@ -57,6 +58,7 @@ class DeviceServiceImplTest {
   @Test
   void updateDevice() {
     UUID deviceUuid = UUID.randomUUID();
+
     Device existingDevice = new Device();
     existingDevice.setId(1L);
     existingDevice.setUuid(deviceUuid);
@@ -64,20 +66,19 @@ class DeviceServiceImplTest {
     existingDevice.setBrand("Old Brand");
     existingDevice.setState(DeviceState.AVAILABLE);
 
-    Device updatedDevice = new Device();
-    updatedDevice.setId(1L);
-    updatedDevice.setUuid(deviceUuid);
-    updatedDevice.setName("New Name");
-    updatedDevice.setBrand("New Brand");
-    updatedDevice.setState(DeviceState.AVAILABLE);
+    Device changedDevice = new Device();
+    changedDevice.setId(1L);
+    changedDevice.setUuid(deviceUuid);
+    changedDevice.setName("New Name");
+    changedDevice.setBrand("New Brand");
+    changedDevice.setState(DeviceState.AVAILABLE);
 
-    DeviceDTO existingDeviceDTO = deviceMapper.toDto(existingDevice);
-    DeviceDTO updatedDeviceDTO = deviceMapper.toDto(updatedDevice);
+    UpdateDeviceDTO updatedDeviceDTO = deviceMapper.entityToUpdateDto(changedDevice);
+    DeviceDTO changedDeviceDTO = deviceMapper.toDto(changedDevice);
 
-    when(deviceMapperMock.toEntity(existingDeviceDTO)).thenReturn(existingDevice);
-    when(deviceMapperMock.toDto(updatedDevice)).thenReturn(updatedDeviceDTO);
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
-    when(deviceRepo.save(any(Device.class))).thenReturn(updatedDevice);
+    when(deviceRepo.save(any(Device.class))).thenReturn(changedDevice);
+    when(deviceMapperMock.toDto(changedDevice)).thenReturn(changedDeviceDTO);
 
     DeviceDTO result = deviceService.updateDevice(updatedDeviceDTO);
 
@@ -101,7 +102,7 @@ class DeviceServiceImplTest {
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.empty());
 
-    DeviceDTO updatedDeviceDTO = deviceMapper.toDto(updatedDeviceDetails);
+    UpdateDeviceDTO updatedDeviceDTO = deviceMapper.entityToUpdateDto(updatedDeviceDetails);
 
     assertThrows(EntityNotFoundException.class, () -> deviceService.updateDevice(updatedDeviceDTO));
 
@@ -154,7 +155,7 @@ class DeviceServiceImplTest {
 
     doNothing().when(deviceRepo).delete(device);
 
-    deviceService.deleteDevice(deviceUuid);
+    deviceService.deleteDevice(deviceUuid.toString());
 
     verify(deviceRepo, times(1)).deleteDeviceByUuid(device.getUuid());
   }

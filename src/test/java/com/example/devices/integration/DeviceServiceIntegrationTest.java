@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.example.devices.dto.DeviceDTO;
+import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.service.DeviceService;
 import jakarta.validation.ConstraintViolationException;
 import java.util.UUID;
@@ -36,8 +37,8 @@ public class DeviceServiceIntegrationTest {
     DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Old Name", "Old Brand", "AVAILABLE", null);
     DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
 
-    DeviceDTO updateDeviceDTO =
-        new DeviceDTO(savedDevice.uuid(), "New Name", "New Brand", "IN_USE", null);
+    UpdateDeviceDTO updateDeviceDTO =
+        new UpdateDeviceDTO(savedDevice.uuid(), "New Name", "New Brand", "IN_USE", null);
     DeviceDTO updatedDevice = deviceService.updateDevice(updateDeviceDTO);
 
     assertThat(updatedDevice).isNotNull();
@@ -48,12 +49,12 @@ public class DeviceServiceIntegrationTest {
   }
 
   @Test
-  void updateDevice_shouldThrowExceptionWhenNameIsInvalid() {
+  void updateDevice_shouldThrowExceptionWhenInUseAndNameIsChanged() {
     DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Valid Name", "Valid Brand", "IN_USE", null);
     DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
 
-    DeviceDTO invalidUpdateDeviceDTO =
-        new DeviceDTO(savedDevice.uuid(), "Valid Name", "New Brand", "IN_USE", null);
+      UpdateDeviceDTO invalidUpdateDeviceDTO =
+        new UpdateDeviceDTO(savedDevice.uuid(), "Valid Name", "New Brand", "IN_USE", null);
 
     ConstraintViolationException constraintViolationException =
         assertThrows(
@@ -61,7 +62,22 @@ public class DeviceServiceIntegrationTest {
             () -> deviceService.updateDevice(invalidUpdateDeviceDTO));
 
     assertEquals(
-        "updateDevice.device: Name and brand proper:es cannot be updated if the device is in use",
+        "updateDevice.device: Name and brand properties cannot be updated if the device is in use",
+        constraintViolationException.getMessage());
+  }
+
+  @Test
+  void updateDevice_shouldThrowExceptionWhenDeviceDoesntExist() {
+      UpdateDeviceDTO invalidUpdateDeviceDTO =
+        new UpdateDeviceDTO(UUID.randomUUID().toString(), "Valid Name", "New Brand", "IN_USE", null);
+
+    ConstraintViolationException constraintViolationException =
+        assertThrows(
+            ConstraintViolationException.class,
+            () -> deviceService.updateDevice(invalidUpdateDeviceDTO));
+
+    assertEquals(
+        "updateDevice.device.uuid: Device not found",
         constraintViolationException.getMessage());
   }
 
@@ -75,5 +91,56 @@ public class DeviceServiceIntegrationTest {
     assertThat(foundDevice).isNotNull();
     assertThat(foundDevice.uuid()).isEqualTo(savedDevice.uuid());
     assertThat(foundDevice.name()).isEqualTo("Find Me");
+  }
+
+  @Test
+  void getDeviceByUuid_shouldThrowExceptionWhenNotFound() {
+    UUID nonExistentUuid = UUID.randomUUID();
+    RuntimeException runtimeException =
+        assertThrows(RuntimeException.class, () -> deviceService.getDeviceByUuid(nonExistentUuid));
+
+    assertEquals("Device not found with UUID: " + nonExistentUuid, runtimeException.getMessage());
+  }
+
+  @Test
+  void deleteDevice_shouldRemoveDevice() {
+    DeviceDTO initialDeviceDTO =
+        new DeviceDTO(null, "Delete Me", "Delete Brand", "AVAILABLE", null);
+    DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
+
+    deviceService.deleteDevice(savedDevice.uuid());
+
+    RuntimeException runtimeException =
+        assertThrows(
+            RuntimeException.class,
+            () -> deviceService.getDeviceByUuid(UUID.fromString(savedDevice.uuid())));
+
+    assertEquals(
+        "Device not found with UUID: " + savedDevice.uuid(), runtimeException.getMessage());
+  }
+
+  @Test
+  void deleteDevice_shouldThrowExceptionWhenNotFound() {
+    UUID nonExistentUuid = UUID.randomUUID();
+    ConstraintViolationException constraintViolationException =
+        assertThrows(
+            ConstraintViolationException.class, () -> deviceService.deleteDevice(nonExistentUuid.toString()));
+
+    assertEquals(
+        "deleteDevice.deviceUuid: Device not found", constraintViolationException.getMessage());
+  }
+
+  @Test
+  void deleteDevice_shouldThrowExceptionWhenDeviceIsInUse() {
+      DeviceDTO initialDeviceDTO =
+              new DeviceDTO(null, "Delete Me", "Delete Brand", "IN_USE", null);
+      DeviceDTO device = deviceService.createDevice(initialDeviceDTO);
+      ConstraintViolationException constraintViolationException =
+        assertThrows(
+            ConstraintViolationException.class,
+            () -> deviceService.deleteDevice(device.uuid()));
+
+    assertEquals(
+        "deleteDevice.deviceUuid: Device cannot be deleted if in use", constraintViolationException.getMessage());
   }
 }

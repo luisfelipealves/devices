@@ -1,6 +1,6 @@
 package com.example.devices.validator;
 
-import com.example.devices.dto.DeviceDTO;
+import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
 import com.example.devices.repository.DeviceRepo;
@@ -10,17 +10,18 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class InUseDeviceValidator implements ConstraintValidator<NotUpdatableIfInUse, DeviceDTO> {
+public class NameAndBrandNotUpdatableIfInUseValidator implements ConstraintValidator<NameAndBrandNotUpdatableIfInUse,
+        UpdateDeviceDTO> {
 
   private final DeviceRepo deviceRepo;
 
   @Autowired
-  public InUseDeviceValidator(DeviceRepo deviceRepo) {
+  public NameAndBrandNotUpdatableIfInUseValidator(DeviceRepo deviceRepo) {
     this.deviceRepo = deviceRepo;
   }
 
   @Override
-  public boolean isValid(DeviceDTO deviceDTO, ConstraintValidatorContext context) {
+  public boolean isValid(UpdateDeviceDTO deviceDTO, ConstraintValidatorContext context) {
     Optional<Device> existingDeviceOptional =
         deviceRepo.findDeviceByUuid(UUID.fromString(deviceDTO.uuid()));
     if (existingDeviceOptional.isPresent()) {

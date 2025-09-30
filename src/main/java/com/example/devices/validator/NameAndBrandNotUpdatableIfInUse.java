@@ -7,10 +7,10 @@ import java.lang.annotation.*;
 
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = InUseDeviceValidator.class)
+@Constraint(validatedBy = NameAndBrandNotUpdatableIfInUseValidator.class)
 @Documented
-public @interface NotUpdatableIfInUse {
-    String message() default "Name and brand proper:es cannot be updated if the device is in use";
+public @interface NameAndBrandNotUpdatableIfInUse {
+    String message() default "Name and brand properties cannot be updated if the device is in use";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

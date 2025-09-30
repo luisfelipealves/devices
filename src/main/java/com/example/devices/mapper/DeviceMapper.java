@@ -2,6 +2,7 @@ package com.example.devices.mapper;
 
     
 import com.example.devices.dto.DeviceDTO;
+import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -18,4 +19,6 @@ public interface DeviceMapper {
     DeviceDTO toDto(Device device);
 
     Device toEntity(DeviceDTO deviceDTO);
+
+    UpdateDeviceDTO entityToUpdateDto(Device device);
 }

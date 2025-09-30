@@ -15,4 +15,6 @@ public interface DeviceRepo extends JpaRepository<Device, Long> {
   List<Device> findByState(DeviceState state);
 
   void deleteDeviceByUuid(UUID deviceUuid);
+
+  boolean existsDeviceByUuid(UUID uuid);
 }

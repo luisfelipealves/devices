@@ -1,14 +1,14 @@
-package com.example.devices;
+package com.example.devices.validator;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.example.devices.dto.DeviceDTO;
+import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
 import com.example.devices.repository.DeviceRepo;
-import com.example.devices.validator.InUseDeviceValidator;
+
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +17,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-class InUseDeviceValidatorTest {
+class NameAndBrandNotUpdatableIfInUseValidatorTest {
 
   @Mock private DeviceRepo deviceRepo;
 
-  @InjectMocks private InUseDeviceValidator validator;
+  @InjectMocks private NameAndBrandNotUpdatableIfInUseValidator validator;
 
   @BeforeEach
   void setUp() {
@@ -39,8 +39,8 @@ class InUseDeviceValidatorTest {
             .state(DeviceState.IN_USE)
             .build();
 
-    DeviceDTO updatedDTO =
-        new DeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE", null);
+    UpdateDeviceDTO updatedDTO =
+        new UpdateDeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE", null);
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
 
@@ -58,8 +58,8 @@ class InUseDeviceValidatorTest {
             .state(DeviceState.AVAILABLE)
             .build();
 
-    DeviceDTO updatedDTO =
-        new DeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE", null);
+    UpdateDeviceDTO updatedDTO =
+        new UpdateDeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE", null);
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
 
