@@ -1,16 +1,17 @@
 package com.example.devices.service;
 
-import com.example.devices.entity.Device;
+
+import com.example.devices.dto.DeviceDTO;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface DeviceService {
-    Device createDevice(Device device);
-    Device updateDevice(Device device);
-    Device getDeviceByUuid(UUID uuid);
-    List<Device> getAllDevices();
-    List<Device> getDevicesByBrand(String brand);
-    List<Device> getDevicesByState(String state);
+    DeviceDTO createDevice(DeviceDTO device);
+    DeviceDTO updateDevice(DeviceDTO device);
+    DeviceDTO getDeviceByUuid(UUID uuid);
+    List<DeviceDTO> getAllDevices();
+    List<DeviceDTO> getDevicesByBrand(String brand);
+    List<DeviceDTO> getDevicesByState(String state);
     void deleteDevice(UUID id);
 }

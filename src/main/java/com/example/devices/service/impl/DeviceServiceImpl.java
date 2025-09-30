@@ -1,7 +1,9 @@
 package com.example.devices.service.impl;
 
+import com.example.devices.dto.DeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
+import com.example.devices.mapper.DeviceMapper;
 import com.example.devices.repository.DeviceRepo;
 import com.example.devices.service.DeviceService;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,61 +18,63 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeviceServiceImpl implements DeviceService {
 
   private final DeviceRepo deviceRepo;
+  private final DeviceMapper deviceMapper;
 
   @Autowired
-  public DeviceServiceImpl(DeviceRepo deviceRepo) {
+  public DeviceServiceImpl(DeviceRepo deviceRepo, DeviceMapper deviceMapper) {
     this.deviceRepo = deviceRepo;
+    this.deviceMapper = deviceMapper;
   }
 
   @Override
   @Transactional
-  public Device createDevice(Device device) {
+  public DeviceDTO createDevice(DeviceDTO deviceDTO) {
+    Device device = deviceMapper.toEntity(deviceDTO);
     device.setUuid(UUID.randomUUID());
     device.setCreationTime(LocalDateTime.now());
     if (device.getState() == null) {
       device.setState(DeviceState.AVAILABLE);
     }
-    return deviceRepo.save(device);
+    return deviceMapper.toDto(deviceRepo.save(device));
   }
 
   @Override
   @Transactional
-  public Device updateDevice(Device device) {
+  public DeviceDTO updateDevice(DeviceDTO deviceDTO) {
     Device existingDevice =
         deviceRepo
-            .findDeviceByUuid(device.getUuid())
+            .findDeviceByUuid(UUID.fromString(deviceDTO.uuid()))
             .orElseThrow(
                 () ->
-                    new EntityNotFoundException("Device not found with UUID: " + device.getUuid()));
+                    new EntityNotFoundException("Device not found with UUID: " + deviceDTO.uuid()));
 
-    existingDevice.setName(device.getName());
-    existingDevice.setBrand(device.getBrand());
-    existingDevice.setState(device.getState());
+    existingDevice.setName(deviceDTO.name());
+    existingDevice.setBrand(deviceDTO.brand());
+    existingDevice.setState(DeviceState.valueOf(deviceDTO.state()));
 
-    return deviceRepo.save(existingDevice);
+    return deviceMapper.toDto(deviceRepo.save(existingDevice));
   }
 
   @Override
-  public Device getDeviceByUuid(UUID uuid) {
-    return deviceRepo
-        .findDeviceByUuid(uuid)
-        .orElseThrow(() -> new EntityNotFoundException("Device not found with UUID: " + uuid));
+  public DeviceDTO getDeviceByUuid(UUID uuid) {
+    return deviceMapper.toDto(deviceRepo.findDeviceByUuid(uuid)
+        .orElseThrow(() -> new EntityNotFoundException("Device not found with UUID: " + uuid)));
   }
 
   @Override
-  public List<Device> getAllDevices() {
-    return deviceRepo.findAll();
+  public List<DeviceDTO> getAllDevices() {
+    return deviceMapper.toDtoList(deviceRepo.findAll());
   }
 
   @Override
-  public List<Device> getDevicesByBrand(String brand) {
-    return deviceRepo.findByBrand(brand);
+  public List<DeviceDTO> getDevicesByBrand(String brand) {
+    return deviceMapper.toDtoList(deviceRepo.findByBrand(brand));
   }
 
   @Override
-  public List<Device> getDevicesByState(String state) {
+  public List<DeviceDTO> getDevicesByState(String state) {
     DeviceState deviceState = DeviceState.valueOf(state.toUpperCase());
-    return deviceRepo.findByState(deviceState);
+    return deviceMapper.toDtoList(deviceRepo.findByState(deviceState));
   }
 
   @Override

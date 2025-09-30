@@ -4,11 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.example.devices.dto.DeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
+import com.example.devices.mapper.DeviceMapper;
 import com.example.devices.repository.DeviceRepo;
 import jakarta.persistence.EntityNotFoundException;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,7 +21,10 @@ import org.mockito.MockitoAnnotations;
 
 class DeviceServiceImplTest {
 
+  private final DeviceMapper deviceMapper = DeviceMapper.INSTANCE;
+
   @Mock private DeviceRepo deviceRepo;
+  @Mock private DeviceMapper deviceMapperMock;
 
   @InjectMocks private DeviceServiceImpl deviceService;
 
@@ -36,14 +40,16 @@ class DeviceServiceImplTest {
     device.setName("Test Device");
     device.setBrand("Test Brand");
 
+    DeviceDTO deviceDTO = deviceMapper.toDto(device);
+    when(deviceMapperMock.toDto(device)).thenReturn(deviceDTO);
+    when(deviceMapperMock.toEntity(deviceDTO)).thenReturn(device);
     when(deviceRepo.save(any(Device.class))).thenReturn(device);
 
-    Device createdDevice = deviceService.createDevice(device);
+    DeviceDTO createdDevice = deviceService.createDevice(deviceDTO);
 
     assertNotNull(createdDevice);
-    assertEquals(1L, createdDevice.getId());
-    assertEquals("Test Device", createdDevice.getName());
-    assertEquals("Test Brand", createdDevice.getBrand());
+    assertEquals("Test Device", createdDevice.name());
+    assertEquals("Test Brand", createdDevice.brand());
 
     verify(deviceRepo, times(1)).save(any(Device.class));
   }
@@ -56,22 +62,29 @@ class DeviceServiceImplTest {
     existingDevice.setUuid(deviceUuid);
     existingDevice.setName("Old Name");
     existingDevice.setBrand("Old Brand");
+    existingDevice.setState(DeviceState.AVAILABLE);
 
-    Device updatedDeviceDetails = new Device();
-    updatedDeviceDetails.setId(1L);
-    updatedDeviceDetails.setUuid(deviceUuid);
-    updatedDeviceDetails.setName("New Name");
-    updatedDeviceDetails.setBrand("New Brand");
+    Device updatedDevice = new Device();
+    updatedDevice.setId(1L);
+    updatedDevice.setUuid(deviceUuid);
+    updatedDevice.setName("New Name");
+    updatedDevice.setBrand("New Brand");
+    updatedDevice.setState(DeviceState.AVAILABLE);
 
+    DeviceDTO existingDeviceDTO = deviceMapper.toDto(existingDevice);
+    DeviceDTO updatedDeviceDTO = deviceMapper.toDto(updatedDevice);
+
+    when(deviceMapperMock.toEntity(existingDeviceDTO)).thenReturn(existingDevice);
+    when(deviceMapperMock.toDto(updatedDevice)).thenReturn(updatedDeviceDTO);
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
-    when(deviceRepo.save(existingDevice)).thenReturn(existingDevice);
+    when(deviceRepo.save(any(Device.class))).thenReturn(updatedDevice);
 
-    Device result = deviceService.updateDevice(updatedDeviceDetails);
+    DeviceDTO result = deviceService.updateDevice(updatedDeviceDTO);
 
     assertNotNull(result);
-    assertEquals(1L, result.getId());
-    assertEquals("New Name", result.getName());
-    assertEquals("New Brand", result.getBrand());
+    assertEquals(deviceUuid.toString(), result.uuid());
+    assertEquals("New Name", result.name());
+    assertEquals("New Brand", result.brand());
 
     verify(deviceRepo, times(1)).findDeviceByUuid(deviceUuid);
     verify(deviceRepo, times(1)).save(any(Device.class));
@@ -88,30 +101,35 @@ class DeviceServiceImplTest {
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> deviceService.updateDevice(updatedDeviceDetails));
+    DeviceDTO updatedDeviceDTO = deviceMapper.toDto(updatedDeviceDetails);
+
+    assertThrows(EntityNotFoundException.class, () -> deviceService.updateDevice(updatedDeviceDTO));
 
     verify(deviceRepo, times(1)).findDeviceByUuid(deviceUuid);
     verify(deviceRepo, never()).save(any(Device.class));
   }
 
   @Test
-  void getDeviceByIdFound() {
+  void getDeviceByUuid() {
     UUID deviceUuid = UUID.randomUUID();
     Device device = new Device();
     device.setId(1L);
     device.setUuid(deviceUuid);
     device.setName("Test Device");
     device.setBrand("Test Brand");
+    device.setState(DeviceState.AVAILABLE);
 
+    DeviceDTO deviceDTO = deviceMapper.toDto(device);
+
+    when(deviceMapperMock.toDto(device)).thenReturn(deviceDTO);
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(device));
 
-    Device foundDevice = deviceService.getDeviceByUuid(deviceUuid);
+    DeviceDTO foundDevice = deviceService.getDeviceByUuid(deviceUuid);
 
     assertNotNull(foundDevice);
-    assertEquals(1L, foundDevice.getId());
-    assertEquals(deviceUuid, foundDevice.getUuid());
-    assertEquals("Test Device", foundDevice.getName());
-    assertEquals("Test Brand", foundDevice.getBrand());
+    assertEquals(deviceUuid.toString(), foundDevice.uuid());
+    assertEquals("Test Device", foundDevice.name());
+    assertEquals("Test Brand", foundDevice.brand());
 
     verify(deviceRepo, times(1)).findDeviceByUuid(deviceUuid);
   }
@@ -151,14 +169,19 @@ class DeviceServiceImplTest {
     device2.setId(2L);
     device2.setName("Device 2");
 
+    DeviceDTO device1DTO = deviceMapper.toDto(device1);
+    DeviceDTO device2DTO = deviceMapper.toDto(device2);
+
+    when(deviceMapperMock.toDtoList(List.of(device1, device2)))
+        .thenReturn(List.of(device1DTO, device2DTO));
     when(deviceRepo.findAll()).thenReturn(java.util.Arrays.asList(device1, device2));
 
-    java.util.List<Device> devices = deviceService.getAllDevices();
+    java.util.List<DeviceDTO> devices = deviceService.getAllDevices();
 
     assertNotNull(devices);
     assertEquals(2, devices.size());
-    assertEquals("Device 1", devices.get(0).getName());
-    assertEquals("Device 2", devices.get(1).getName());
+    assertEquals("Device 1", devices.get(0).name());
+    assertEquals("Device 2", devices.get(1).name());
 
     verify(deviceRepo, times(1)).findAll();
   }
@@ -176,16 +199,21 @@ class DeviceServiceImplTest {
     device2.setName("Device 2");
     device2.setBrand(brand);
 
+    DeviceDTO device1DTO = deviceMapper.toDto(device1);
+    DeviceDTO device2DTO = deviceMapper.toDto(device2);
+
+    when(deviceMapperMock.toDtoList(List.of(device1, device2)))
+        .thenReturn(List.of(device1DTO, device2DTO));
     when(deviceRepo.findByBrand(brand)).thenReturn(java.util.Arrays.asList(device1, device2));
 
-    java.util.List<Device> devices = deviceService.getDevicesByBrand(brand);
+    List<DeviceDTO> devices = deviceService.getDevicesByBrand(brand);
 
     assertNotNull(devices);
     assertEquals(2, devices.size());
-    assertEquals("Device 1", devices.get(0).getName());
-    assertEquals("Test Brand", devices.get(0).getBrand());
-    assertEquals("Device 2", devices.get(1).getName());
-    assertEquals("Test Brand", devices.get(1).getBrand());
+    assertEquals("Device 1", devices.get(0).name());
+    assertEquals("Test Brand", devices.get(0).brand());
+    assertEquals("Device 2", devices.get(1).name());
+    assertEquals("Test Brand", devices.get(1).brand());
 
     verify(deviceRepo, times(1)).findByBrand(brand);
   }
@@ -202,16 +230,20 @@ class DeviceServiceImplTest {
     device2.setName("Device 2");
     device2.setState(DeviceState.IN_USE);
 
+    DeviceDTO device2DTO = deviceMapper.toDto(device2);
+
+    when(deviceMapperMock.toDtoList(List.of(device2)))
+        .thenReturn(List.of(device2DTO));
     when(deviceRepo.findByState(DeviceState.IN_USE)).thenReturn(List.of(device2));
 
-    java.util.List<Device> devices = deviceService.getDevicesByState(DeviceState.IN_USE.toString());
+    java.util.List<DeviceDTO> devices =
+        deviceService.getDevicesByState(DeviceState.IN_USE.toString());
 
     assertNotNull(devices);
     assertEquals(1, devices.size());
-    assertEquals("Device 2", devices.getFirst().getName());
-    assertEquals(DeviceState.IN_USE, devices.getFirst().getState());
+    assertEquals("Device 2", devices.getFirst().name());
+    assertEquals(DeviceState.IN_USE.toString(), devices.getFirst().state());
 
     verify(deviceRepo, times(1)).findByState(DeviceState.IN_USE);
   }
-
 }
