@@ -1,23 +1,24 @@
 package com.example.devices.repository;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
+@ActiveProfiles("test")
 class DeviceRepoTest {
     private final DeviceRepo deviceRepo;
 

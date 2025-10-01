@@ -8,10 +8,9 @@ import com.example.devices.validator.DeviceExists;
 import com.example.devices.validator.NotDeleteIfInUse;
 import com.github.fge.jsonpatch.JsonPatch;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.UUID;
 
 public interface DeviceService {
     DeviceDTO createDevice(CreateDeviceDTO device);

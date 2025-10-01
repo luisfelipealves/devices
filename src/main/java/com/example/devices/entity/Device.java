@@ -18,8 +18,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "devices")
-@EntityListeners(AuditingEntityListener.class) // <-- Adicione esta anotação
+@Table(name = "devices", indexes = {
+        @Index(name = "idx_uuid", columnList = "uuid", unique = true),
+        @Index(name = "idx_brand", columnList = "brand"),
+        @Index(name = "idx_state", columnList = "state")
+})
+@EntityListeners(AuditingEntityListener.class)
 public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

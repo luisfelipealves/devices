@@ -4,7 +4,6 @@ import com.example.devices.enumerate.DeviceState;
 import com.example.devices.repository.DeviceRepo;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Component;

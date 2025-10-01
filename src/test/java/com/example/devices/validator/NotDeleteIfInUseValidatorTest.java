@@ -11,7 +11,6 @@ import com.example.devices.enumerate.DeviceState;
 import com.example.devices.repository.DeviceRepo;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 
 public class NotDeleteIfInUseValidatorTest {

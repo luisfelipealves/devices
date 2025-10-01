@@ -2,13 +2,14 @@ package com.example.devices.repository;
 
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-import java.util.UUID;
-
+@Repository
 public interface DeviceRepo extends JpaRepository<Device, Long> {
   Optional<Device> findDeviceByUuid(UUID deviceUuid);
 

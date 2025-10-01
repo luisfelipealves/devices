@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.UUID;
 
 @Service
 @Validated
@@ -88,7 +87,6 @@ public class DeviceServiceImpl implements DeviceService {
     try {
         JsonNode patched = patch.apply(objectMapper.convertValue(existingDevice, JsonNode.class));
         Device patchedDevice = objectMapper.treeToValue(patched, Device.class);
-        // Restore non-updatable fields
         patchedDevice.setId(existingDevice.getId());
         patchedDevice.setUuid(existingDevice.getUuid());
         patchedDevice.setCreationTime(existingDevice.getCreationTime());
