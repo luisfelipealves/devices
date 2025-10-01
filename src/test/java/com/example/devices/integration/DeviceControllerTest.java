@@ -18,12 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 public class DeviceControllerTest {
 
     @Autowired
@@ -36,6 +38,7 @@ public class DeviceControllerTest {
     private ObjectMapper objectMapper;
 
     private Device device1;
+    private Device device2;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +50,7 @@ public class DeviceControllerTest {
         device1.setState(DeviceState.AVAILABLE);
         device1.setCreationTime(LocalDateTime.now());
 
-        Device device2 = new Device();
+        device2 = new Device();
         device2.setName("iPhone 15");
         device2.setBrand("Apple");
         device2.setState(DeviceState.IN_USE);
