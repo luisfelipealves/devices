@@ -4,6 +4,7 @@ import com.example.devices.dto.CreateDeviceDTO;
 import com.example.devices.dto.DeviceDTO;
 import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.service.DeviceService;
+import com.github.fge.jsonpatch.JsonPatch;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,14 @@ public class DevicesController {
         DeviceDTO updatedDevice = deviceService.updateDevice(updateDeviceDTO);
         log.info("Device updated: {}", updatedDevice);
         return ResponseEntity.ok(updatedDevice);
+    }
+
+    @PatchMapping(path = "/{uuid}", consumes = "application/json-patch+json")
+    public ResponseEntity<DeviceDTO> patchDevice(@PathVariable UUID uuid, @RequestBody JsonPatch patch) {
+        log.info("Request to patch device with UUID: {}", uuid);
+        DeviceDTO patchedDevice = deviceService.patchDevice(uuid, patch);
+        log.info("Device patched: {}", patchedDevice);
+        return ResponseEntity.ok(patchedDevice);
     }
 
     @GetMapping("/{uuid}")

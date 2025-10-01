@@ -1,17 +1,11 @@
 package com.example.devices.integration;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import com.example.devices.dto.CreateDeviceDTO;
 import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
 import com.example.devices.enumerate.DeviceState;
 import com.example.devices.repository.DeviceRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +15,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,12 +47,14 @@ public class DeviceControllerTest {
         deviceRepo.deleteAll();
 
         device1 = new Device();
+        device1.setUuid(UUID.randomUUID());
         device1.setName("Samsung Galaxy S23");
         device1.setBrand("Samsung");
         device1.setState(DeviceState.AVAILABLE);
         device1.setCreationTime(LocalDateTime.now());
 
         device2 = new Device();
+        device2.setUuid(UUID.randomUUID());
         device2.setName("iPhone 15");
         device2.setBrand("Apple");
         device2.setState(DeviceState.IN_USE);
@@ -84,6 +88,17 @@ public class DeviceControllerTest {
                 .andExpect(jsonPath("$.name", is("Updated Name")))
                 .andExpect(jsonPath("$.brand", is("Updated Brand")))
                 .andExpect(jsonPath("$.state", is("IN_USE")));
+    }
+
+    @Test
+    void patchDevice() throws Exception {
+        String patchInJson = "[{ \"op\": \"replace\", \"path\": \"/name\", \"value\": \"Patched Device Name\" }]";
+
+        mockMvc.perform(patch("/api/v1/devices/{uuid}", device1.getUuid())
+                        .contentType("application/json-patch+json")
+                        .content(patchInJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Patched Device Name")));
     }
     
     @Test

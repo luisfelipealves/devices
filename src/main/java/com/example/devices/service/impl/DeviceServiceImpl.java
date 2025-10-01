@@ -8,6 +8,11 @@ import com.example.devices.enumerate.DeviceState;
 import com.example.devices.mapper.DeviceMapper;
 import com.example.devices.repository.DeviceRepo;
 import com.example.devices.service.DeviceService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +32,13 @@ public class DeviceServiceImpl implements DeviceService {
   private static final Logger log = LoggerFactory.getLogger(DeviceServiceImpl.class);
   private final DeviceRepo deviceRepo;
   private final DeviceMapper deviceMapper;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public DeviceServiceImpl(DeviceRepo deviceRepo, DeviceMapper deviceMapper) {
+  public DeviceServiceImpl(DeviceRepo deviceRepo, DeviceMapper deviceMapper, ObjectMapper objectMapper) {
     this.deviceRepo = deviceRepo;
     this.deviceMapper = deviceMapper;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -67,6 +74,32 @@ public class DeviceServiceImpl implements DeviceService {
     Device updatedDevice = deviceRepo.save(existingDevice);
     log.info("Device with UUID {} updated successfully.", updatedDevice.getUuid());
     return deviceMapper.toDto(updatedDevice);
+  }
+
+  @Override
+  @Transactional
+  public DeviceDTO patchDevice(UUID uuid, JsonPatch patch) {
+    log.debug("Patching device with UUID: {}", uuid);
+    Device existingDevice = deviceRepo.findDeviceByUuid(uuid).orElseThrow(() -> {
+        log.error("Device not found with UUID: {}", uuid);
+        return new EntityNotFoundException("Device not found with UUID: " + uuid);
+    });
+
+    try {
+        JsonNode patched = patch.apply(objectMapper.convertValue(existingDevice, JsonNode.class));
+        Device patchedDevice = objectMapper.treeToValue(patched, Device.class);
+        // Restore non-updatable fields
+        patchedDevice.setId(existingDevice.getId());
+        patchedDevice.setUuid(existingDevice.getUuid());
+        patchedDevice.setCreationTime(existingDevice.getCreationTime());
+
+        Device savedDevice = deviceRepo.save(patchedDevice);
+        log.info("Device with UUID {} patched successfully.", savedDevice.getUuid());
+        return deviceMapper.toDto(savedDevice);
+    } catch (JsonPatchException | JsonProcessingException e) {
+        log.error("Error applying patch to device with UUID: {}", uuid, e);
+        throw new RuntimeException("Error applying patch", e);
+    }
   }
 
   @Override
