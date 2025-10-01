@@ -6,8 +6,4 @@ import jakarta.validation.constraints.NotNull;
 
 @NameAndBrandNotUpdatableIfInUse
 public record UpdateDeviceDTO(
-    @NotNull @DeviceExists String uuid,
-    String name,
-    String brand,
-    String state,
-    String creationTime) {}
+    @NotNull @DeviceExists String uuid, String name, String brand, String state) {}

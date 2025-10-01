@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.example.devices.dto.CreateDeviceDTO;
 import com.example.devices.dto.DeviceDTO;
 import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
@@ -41,12 +42,13 @@ class DeviceServiceImplTest {
     device.setName("Test Device");
     device.setBrand("Test Brand");
 
+    CreateDeviceDTO createDeviceDTO = deviceMapper.toCreateDto(device);
     DeviceDTO deviceDTO = deviceMapper.toDto(device);
     when(deviceMapperMock.toDto(device)).thenReturn(deviceDTO);
-    when(deviceMapperMock.toEntity(deviceDTO)).thenReturn(device);
+    when(deviceMapperMock.toEntity(createDeviceDTO)).thenReturn(device);
     when(deviceRepo.save(any(Device.class))).thenReturn(device);
 
-    DeviceDTO createdDevice = deviceService.createDevice(deviceDTO);
+    DeviceDTO createdDevice = deviceService.createDevice(createDeviceDTO);
 
     assertNotNull(createdDevice);
     assertEquals("Test Device", createdDevice.name());
@@ -73,7 +75,7 @@ class DeviceServiceImplTest {
     changedDevice.setBrand("New Brand");
     changedDevice.setState(DeviceState.AVAILABLE);
 
-    UpdateDeviceDTO updatedDeviceDTO = deviceMapper.entityToUpdateDto(changedDevice);
+    UpdateDeviceDTO updatedDeviceDTO = deviceMapper.toUpdateDto(changedDevice);
     DeviceDTO changedDeviceDTO = deviceMapper.toDto(changedDevice);
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
@@ -102,7 +104,7 @@ class DeviceServiceImplTest {
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.empty());
 
-    UpdateDeviceDTO updatedDeviceDTO = deviceMapper.entityToUpdateDto(updatedDeviceDetails);
+    UpdateDeviceDTO updatedDeviceDTO = deviceMapper.toUpdateDto(updatedDeviceDetails);
 
     assertThrows(EntityNotFoundException.class, () -> deviceService.updateDevice(updatedDeviceDTO));
 

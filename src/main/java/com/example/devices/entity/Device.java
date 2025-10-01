@@ -1,16 +1,16 @@
 package com.example.devices.entity;
 
 import com.example.devices.enumerate.DeviceState;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Setter
@@ -19,13 +19,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "devices")
+@EntityListeners(AuditingEntityListener.class) // <-- Adicione esta anotação
 public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     private Long id;
     
-    @Column(name = "uuid", unique = true, nullable = false)
+    @Column(name = "uuid", unique = true, nullable = false, updatable = false)
     private UUID uuid;
 
     private String name;
@@ -36,7 +36,15 @@ public class Device {
     @Column(name = "state")
     private DeviceState state;
 
-    @Column(name = "creation_time")
+    @CreatedDate
+    @Column(name = "creation_time", nullable = false, updatable = false)
     private LocalDateTime creationTime;
+
+    @PrePersist
+    private void generateUuid() {
+        if (uuid == null) {
+            this.uuid = UUID.randomUUID();
+        }
+    }
 
 }

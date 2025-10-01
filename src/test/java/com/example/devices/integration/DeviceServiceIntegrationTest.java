@@ -1,9 +1,9 @@
 package com.example.devices.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.devices.dto.CreateDeviceDTO;
 import com.example.devices.dto.DeviceDTO;
 import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.service.DeviceService;
@@ -22,7 +22,7 @@ public class DeviceServiceIntegrationTest {
 
   @Test
   void createDevice_shouldReturnSavedDevice() {
-    DeviceDTO deviceDto = new DeviceDTO(null, "Test Device", "Test Brand", "AVAILABLE", null);
+    CreateDeviceDTO deviceDto = new CreateDeviceDTO("Test Device", "Test Brand", "AVAILABLE");
     DeviceDTO savedDevice = deviceService.createDevice(deviceDto);
 
     assertThat(savedDevice).isNotNull();
@@ -30,15 +30,16 @@ public class DeviceServiceIntegrationTest {
     assertThat(savedDevice.name()).isEqualTo("Test Device");
     assertThat(savedDevice.brand()).isEqualTo("Test Brand");
     assertThat(savedDevice.state()).isEqualTo("AVAILABLE");
+    assertNotNull(savedDevice.creationTime());
   }
 
   @Test
   void updateDevice_shouldReturnUpdatedDevice() {
-    DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Old Name", "Old Brand", "AVAILABLE", null);
+    CreateDeviceDTO initialDeviceDTO = new CreateDeviceDTO("Old Name", "Old Brand", "AVAILABLE");
     DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
 
     UpdateDeviceDTO updateDeviceDTO =
-        new UpdateDeviceDTO(savedDevice.uuid(), "New Name", "New Brand", "IN_USE", null);
+        new UpdateDeviceDTO(savedDevice.uuid(), "New Name", "New Brand", "IN_USE");
     DeviceDTO updatedDevice = deviceService.updateDevice(updateDeviceDTO);
 
     assertThat(updatedDevice).isNotNull();
@@ -50,11 +51,11 @@ public class DeviceServiceIntegrationTest {
 
   @Test
   void updateDevice_shouldThrowExceptionWhenInUseAndNameIsChanged() {
-    DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Valid Name", "Valid Brand", "IN_USE", null);
+    CreateDeviceDTO initialDeviceDTO = new CreateDeviceDTO("Valid Name", "Valid Brand", "IN_USE");
     DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
 
-      UpdateDeviceDTO invalidUpdateDeviceDTO =
-        new UpdateDeviceDTO(savedDevice.uuid(), "Valid Name", "New Brand", "IN_USE", null);
+    UpdateDeviceDTO invalidUpdateDeviceDTO =
+        new UpdateDeviceDTO(savedDevice.uuid(), "Valid Name", "New Brand", "IN_USE");
 
     ConstraintViolationException constraintViolationException =
         assertThrows(
@@ -68,8 +69,8 @@ public class DeviceServiceIntegrationTest {
 
   @Test
   void updateDevice_shouldThrowExceptionWhenDeviceDoesntExist() {
-      UpdateDeviceDTO invalidUpdateDeviceDTO =
-        new UpdateDeviceDTO(UUID.randomUUID().toString(), "Valid Name", "New Brand", "IN_USE", null);
+    UpdateDeviceDTO invalidUpdateDeviceDTO =
+        new UpdateDeviceDTO(UUID.randomUUID().toString(), "Valid Name", "New Brand", "IN_USE");
 
     ConstraintViolationException constraintViolationException =
         assertThrows(
@@ -77,13 +78,12 @@ public class DeviceServiceIntegrationTest {
             () -> deviceService.updateDevice(invalidUpdateDeviceDTO));
 
     assertEquals(
-        "updateDevice.device.uuid: Device not found",
-        constraintViolationException.getMessage());
+        "updateDevice.device.uuid: Device not found", constraintViolationException.getMessage());
   }
 
   @Test
   void getDeviceByUuid_shouldReturnDevice() {
-    DeviceDTO initialDeviceDTO = new DeviceDTO(null, "Find Me", "Search Brand", "AVAILABLE", null);
+      CreateDeviceDTO initialDeviceDTO = new CreateDeviceDTO("Find Me", "Search Brand", "AVAILABLE");
     DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
 
     DeviceDTO foundDevice = deviceService.getDeviceByUuid(UUID.fromString(savedDevice.uuid()));
@@ -104,8 +104,7 @@ public class DeviceServiceIntegrationTest {
 
   @Test
   void deleteDevice_shouldRemoveDevice() {
-    DeviceDTO initialDeviceDTO =
-        new DeviceDTO(null, "Delete Me", "Delete Brand", "AVAILABLE", null);
+      CreateDeviceDTO initialDeviceDTO = new CreateDeviceDTO("Delete Me", "Delete Brand", "AVAILABLE");
     DeviceDTO savedDevice = deviceService.createDevice(initialDeviceDTO);
 
     deviceService.deleteDevice(savedDevice.uuid());
@@ -124,7 +123,8 @@ public class DeviceServiceIntegrationTest {
     UUID nonExistentUuid = UUID.randomUUID();
     ConstraintViolationException constraintViolationException =
         assertThrows(
-            ConstraintViolationException.class, () -> deviceService.deleteDevice(nonExistentUuid.toString()));
+            ConstraintViolationException.class,
+            () -> deviceService.deleteDevice(nonExistentUuid.toString()));
 
     assertEquals(
         "deleteDevice.deviceUuid: Device not found", constraintViolationException.getMessage());
@@ -132,15 +132,14 @@ public class DeviceServiceIntegrationTest {
 
   @Test
   void deleteDevice_shouldThrowExceptionWhenDeviceIsInUse() {
-      DeviceDTO initialDeviceDTO =
-              new DeviceDTO(null, "Delete Me", "Delete Brand", "IN_USE", null);
-      DeviceDTO device = deviceService.createDevice(initialDeviceDTO);
-      ConstraintViolationException constraintViolationException =
+      CreateDeviceDTO initialDeviceDTO = new CreateDeviceDTO("Delete Me", "Delete Brand", "IN_USE");
+    DeviceDTO device = deviceService.createDevice(initialDeviceDTO);
+    ConstraintViolationException constraintViolationException =
         assertThrows(
-            ConstraintViolationException.class,
-            () -> deviceService.deleteDevice(device.uuid()));
+            ConstraintViolationException.class, () -> deviceService.deleteDevice(device.uuid()));
 
     assertEquals(
-        "deleteDevice.deviceUuid: Device cannot be deleted if in use", constraintViolationException.getMessage());
+        "deleteDevice.deviceUuid: Device cannot be deleted if in use",
+        constraintViolationException.getMessage());
   }
 }

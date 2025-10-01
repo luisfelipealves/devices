@@ -40,7 +40,7 @@ class NameAndBrandNotUpdatableIfInUseValidatorTest {
             .build();
 
     UpdateDeviceDTO updatedDTO =
-        new UpdateDeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE", null);
+        new UpdateDeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE");
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
 
@@ -59,7 +59,7 @@ class NameAndBrandNotUpdatableIfInUseValidatorTest {
             .build();
 
     UpdateDeviceDTO updatedDTO =
-        new UpdateDeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE", null);
+        new UpdateDeviceDTO(deviceUuid.toString(), "New device", "New brand", "AVAILABLE");
 
     when(deviceRepo.findDeviceByUuid(deviceUuid)).thenReturn(Optional.of(existingDevice));
 

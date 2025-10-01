@@ -1,5 +1,6 @@
 package com.example.devices.service.impl;
 
+import com.example.devices.dto.CreateDeviceDTO;
 import com.example.devices.dto.DeviceDTO;
 import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.entity.Device;
@@ -8,7 +9,6 @@ import com.example.devices.mapper.DeviceMapper;
 import com.example.devices.repository.DeviceRepo;
 import com.example.devices.service.DeviceService;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +31,8 @@ public class DeviceServiceImpl implements DeviceService {
 
   @Override
   @Transactional
-  public DeviceDTO createDevice(DeviceDTO deviceDTO) {
+  public DeviceDTO createDevice(CreateDeviceDTO deviceDTO) {
     Device device = deviceMapper.toEntity(deviceDTO);
-    device.setUuid(UUID.randomUUID());
-    device.setCreationTime(LocalDateTime.now());
     if (device.getState() == null) {
       device.setState(DeviceState.AVAILABLE);
     }
