@@ -12,6 +12,7 @@ import com.example.devices.enumerate.DeviceState;
 import com.example.devices.mapper.DeviceMapper;
 import com.example.devices.repository.DeviceRepo;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 class DeviceServiceImplTest {
 
@@ -162,8 +167,9 @@ class DeviceServiceImplTest {
     verify(deviceRepo, times(1)).deleteDeviceByUuid(device.getUuid());
   }
 
-  @Test
+ @Test
   void getAllDevices() {
+    Pageable pageable = PageRequest.of(0, 10);
     Device device1 = new Device();
     device1.setId(1L);
     device1.setName("Device 1");
@@ -172,26 +178,30 @@ class DeviceServiceImplTest {
     device2.setId(2L);
     device2.setName("Device 2");
 
+    List<Device> deviceList = Arrays.asList(device1, device2);
+    Page<Device> devicePage = new PageImpl<>(deviceList, pageable, deviceList.size());
+
     DeviceDTO device1DTO = deviceMapper.toDto(device1);
     DeviceDTO device2DTO = deviceMapper.toDto(device2);
 
-    when(deviceMapperMock.toDtoList(List.of(device1, device2)))
-        .thenReturn(List.of(device1DTO, device2DTO));
-    when(deviceRepo.findAll()).thenReturn(java.util.Arrays.asList(device1, device2));
+    when(deviceRepo.findAll(pageable)).thenReturn(devicePage);
+    when(deviceMapperMock.toDto(device1)).thenReturn(device1DTO);
+    when(deviceMapperMock.toDto(device2)).thenReturn(device2DTO);
 
-    java.util.List<DeviceDTO> devices = deviceService.getAllDevices();
+    Page<DeviceDTO> result = deviceService.getAllDevices(pageable);
 
-    assertNotNull(devices);
-    assertEquals(2, devices.size());
-    assertEquals("Device 1", devices.get(0).name());
-    assertEquals("Device 2", devices.get(1).name());
+    assertNotNull(result);
+    assertEquals(2, result.getTotalElements());
+    assertEquals("Device 1", result.getContent().get(0).name());
+    assertEquals("Device 2", result.getContent().get(1).name());
 
-    verify(deviceRepo, times(1)).findAll();
+    verify(deviceRepo, times(1)).findAll(pageable);
   }
 
   @Test
   void getDevicesByBrand() {
     String brand = "Test Brand";
+    Pageable pageable = PageRequest.of(0, 10);
     Device device1 = new Device();
     device1.setId(1L);
     device1.setName("Device 1");
@@ -202,51 +212,53 @@ class DeviceServiceImplTest {
     device2.setName("Device 2");
     device2.setBrand(brand);
 
+    List<Device> deviceList = Arrays.asList(device1, device2);
+    Page<Device> devicePage = new PageImpl<>(deviceList, pageable, deviceList.size());
+
     DeviceDTO device1DTO = deviceMapper.toDto(device1);
     DeviceDTO device2DTO = deviceMapper.toDto(device2);
 
-    when(deviceMapperMock.toDtoList(List.of(device1, device2)))
-        .thenReturn(List.of(device1DTO, device2DTO));
-    when(deviceRepo.findByBrand(brand)).thenReturn(java.util.Arrays.asList(device1, device2));
+    when(deviceRepo.findByBrand(brand, pageable)).thenReturn(devicePage);
+    when(deviceMapperMock.toDto(device1)).thenReturn(device1DTO);
+    when(deviceMapperMock.toDto(device2)).thenReturn(device2DTO);
 
-    List<DeviceDTO> devices = deviceService.getDevicesByBrand(brand);
+    Page<DeviceDTO> result = deviceService.getDevicesByBrand(brand, pageable);
 
-    assertNotNull(devices);
-    assertEquals(2, devices.size());
-    assertEquals("Device 1", devices.get(0).name());
-    assertEquals("Test Brand", devices.get(0).brand());
-    assertEquals("Device 2", devices.get(1).name());
-    assertEquals("Test Brand", devices.get(1).brand());
+    assertNotNull(result);
+    assertEquals(2, result.getTotalElements());
+    assertEquals("Device 1", result.getContent().get(0).name());
+    assertEquals("Test Brand", result.getContent().get(0).brand());
+    assertEquals("Device 2", result.getContent().get(1).name());
+    assertEquals("Test Brand", result.getContent().get(1).brand());
 
-    verify(deviceRepo, times(1)).findByBrand(brand);
+    verify(deviceRepo, times(1)).findByBrand(brand, pageable);
   }
 
   @Test
   void getDevicesByState() {
-    Device device1 = new Device();
-    device1.setId(1L);
-    device1.setName("Device 1");
-    device1.setState(DeviceState.AVAILABLE);
+    DeviceState state = DeviceState.IN_USE;
+    Pageable pageable = PageRequest.of(0, 10);
 
-    Device device2 = new Device();
-    device2.setId(2L);
-    device2.setName("Device 2");
-    device2.setState(DeviceState.IN_USE);
+    Device device = new Device();
+    device.setId(2L);
+    device.setName("Device 2");
+    device.setState(state);
 
-    DeviceDTO device2DTO = deviceMapper.toDto(device2);
+    List<Device> deviceList = List.of(device);
+    Page<Device> devicePage = new PageImpl<>(deviceList, pageable, deviceList.size());
 
-    when(deviceMapperMock.toDtoList(List.of(device2)))
-        .thenReturn(List.of(device2DTO));
-    when(deviceRepo.findByState(DeviceState.IN_USE)).thenReturn(List.of(device2));
+    DeviceDTO deviceDTO = deviceMapper.toDto(device);
 
-    java.util.List<DeviceDTO> devices =
-        deviceService.getDevicesByState(DeviceState.IN_USE.toString());
+    when(deviceRepo.findByState(state, pageable)).thenReturn(devicePage);
+    when(deviceMapperMock.toDto(device)).thenReturn(deviceDTO);
 
-    assertNotNull(devices);
-    assertEquals(1, devices.size());
-    assertEquals("Device 2", devices.getFirst().name());
-    assertEquals(DeviceState.IN_USE.toString(), devices.getFirst().state());
+    Page<DeviceDTO> result = deviceService.getDevicesByState(state.toString(), pageable);
 
-    verify(deviceRepo, times(1)).findByState(DeviceState.IN_USE);
+    assertNotNull(result);
+    assertEquals(1, result.getTotalElements());
+    assertEquals("Device 2", result.getContent().getFirst().name());
+    assertEquals(state.toString(), result.getContent().getFirst().state());
+
+    verify(deviceRepo, times(1)).findByState(state, pageable);
   }
 }

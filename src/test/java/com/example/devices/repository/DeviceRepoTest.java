@@ -5,11 +5,13 @@ import com.example.devices.enumerate.DeviceState;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -130,15 +132,16 @@ class DeviceRepoTest {
         device3.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device3);
 
-        List<Device> devicesByBrand = deviceRepo.findByBrand(brandName);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Device> devicesByBrand = deviceRepo.findByBrand(brandName, pageable);
         assertNotNull(devicesByBrand);
-        assertEquals(2, devicesByBrand.size());
-        assertTrue(devicesByBrand.stream().allMatch(device -> device.getBrand().equals(brandName)));
+        assertEquals(2, devicesByBrand.getTotalElements());
+        assertTrue(devicesByBrand.getContent().stream().allMatch(device -> device.getBrand().equals(brandName)));
     }
 
     @Test
     void testFindByState() {
-
+        deviceRepo.deleteAll();
         Device device1 = new Device();
         device1.setUuid(UUID.randomUUID());
         device1.setName("Device A");
@@ -163,15 +166,16 @@ class DeviceRepoTest {
         device3.setCreationTime(LocalDateTime.now());
         deviceRepo.save(device3);
 
-        List<Device> activeDevices = deviceRepo.findByState(DeviceState.AVAILABLE);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Device> activeDevices = deviceRepo.findByState(DeviceState.AVAILABLE, pageable);
         assertNotNull(activeDevices);
-        assertEquals(2, activeDevices.size());
-        assertTrue(activeDevices.stream().allMatch(device -> device.getState().equals(DeviceState.AVAILABLE)));
+        assertEquals(2, activeDevices.getTotalElements());
+        assertTrue(activeDevices.getContent().stream().allMatch(device -> device.getState().equals(DeviceState.AVAILABLE)));
 
-        List<Device> inactiveDevices = deviceRepo.findByState(DeviceState.INACTIVE);
+        Page<Device> inactiveDevices = deviceRepo.findByState(DeviceState.INACTIVE, pageable);
         assertNotNull(inactiveDevices);
-        assertEquals(1, inactiveDevices.size());
-        assertTrue(inactiveDevices.stream().allMatch(device -> device.getState().equals(DeviceState.INACTIVE)));
+        assertEquals(1, inactiveDevices.getTotalElements());
+        assertTrue(inactiveDevices.getContent().stream().allMatch(device -> device.getState().equals(DeviceState.INACTIVE)));
     }
 
     @Test

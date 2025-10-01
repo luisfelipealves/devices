@@ -7,16 +7,17 @@ import com.example.devices.dto.UpdateDeviceDTO;
 import com.example.devices.validator.DeviceExists;
 import com.example.devices.validator.NotDeleteIfInUse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface DeviceService {
     DeviceDTO createDevice(CreateDeviceDTO device);
     DeviceDTO updateDevice(@Valid UpdateDeviceDTO device);
     DeviceDTO getDeviceByUuid(UUID uuid);
-    List<DeviceDTO> getAllDevices();
-    List<DeviceDTO> getDevicesByBrand(String brand);
-    List<DeviceDTO> getDevicesByState(String state);
+    Page<DeviceDTO> getAllDevices(Pageable pageable);
+    Page<DeviceDTO> getDevicesByBrand(String brand, Pageable pageable);
+    Page<DeviceDTO> getDevicesByState(String state, Pageable pageable);
     void deleteDevice(@Valid @DeviceExists @NotDeleteIfInUse String deviceUuid);
 }

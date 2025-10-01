@@ -9,12 +9,14 @@ import com.example.devices.mapper.DeviceMapper;
 import com.example.devices.repository.DeviceRepo;
 import com.example.devices.service.DeviceService;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.UUID;
 
 @Service
 @Validated
@@ -62,19 +64,22 @@ public class DeviceServiceImpl implements DeviceService {
   }
 
   @Override
-  public List<DeviceDTO> getAllDevices() {
-    return deviceMapper.toDtoList(deviceRepo.findAll());
+  public Page<DeviceDTO> getAllDevices(Pageable pageable) {
+    Page<Device> devicePage = deviceRepo.findAll(pageable);
+    return devicePage.map(deviceMapper::toDto);
   }
 
   @Override
-  public List<DeviceDTO> getDevicesByBrand(String brand) {
-    return deviceMapper.toDtoList(deviceRepo.findByBrand(brand));
+  public Page<DeviceDTO> getDevicesByBrand(String brand, Pageable pageable) {
+    Page<Device> devicePage = deviceRepo.findByBrand(brand, pageable);
+    return devicePage.map(deviceMapper::toDto);
   }
 
   @Override
-  public List<DeviceDTO> getDevicesByState(String state) {
+  public Page<DeviceDTO> getDevicesByState(String state, Pageable pageable) {
     DeviceState deviceState = DeviceState.valueOf(state.toUpperCase());
-    return deviceMapper.toDtoList(deviceRepo.findByState(deviceState));
+    Page<Device> devicePage = deviceRepo.findByState(deviceState, pageable);
+    return devicePage.map(deviceMapper::toDto);
   }
 
   @Override
