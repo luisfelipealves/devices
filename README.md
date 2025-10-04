@@ -3,15 +3,34 @@
 
 This is a simple Spring Boot API for managing devices.
 
+## Technologies Used
+
+*   **Core Framework**: Spring Boot 3.3.0
+*   **Language**: Java 21
+*   **Database**: 
+    *   **Primary**: MySQL
+    *   **Testing**: H2 Database, Testcontainers
+*   **Data Access**: Spring Data JPA
+*   **API & Web**: Spring Web
+*   **Validation**: 
+    *   Spring Boot Starter Validation
+    *   Custom validators (`@DeviceExists`, `@NotDeleteIfInUse`, `@NameAndBrandNotUpdatableIfInUse`)
+*   **Code Generation**: 
+    *   Lombok
+    *   MapStruct
+*   **API Documentation**: SpringDoc OpenAPI (Swagger UI)
+*   **Containerization**: Docker
+*   **Build Tool**: Maven
+
 ## Architecture
 
-The project follows a classic layered architecture pattern for a monolithic Spring Boot application that connects to a PostgreSQL database.
+The project follows a classic layered architecture pattern for a monolithic Spring Boot application that connects to a MySQL database.
 
 The main packages are:
 
 -   `controller`: This layer is responsible for exposing the API endpoints. It receives HTTP requests, validates them, and calls the appropriate service methods.
 -   `service`: This layer contains the core business logic of the application. It orchestrates calls to the repository layer and implements the main functionalities.
--   `repository`: This is the data access layer, which uses Spring Data JPA to interact with the PostgreSQL database.
+-   `repository`: This is the data access layer, which uses Spring Data JPA to interact with the MySQL database.
 -   `entity`: Contains the JPA entities that map to the database tables.
 -   `dto`: Data Transfer Objects are used to define the shape of the data for the API requests and responses. This helps to decouple the API from the internal database structure.
 -   `mapper`: Contains interfaces (likely using MapStruct) to map data between `entity` objects and `dto` objects.
@@ -39,7 +58,7 @@ The application includes custom validators to enforce specific business rules:
 
 ## How to run
 
-To run the application, you will need to have Java and Maven installed. You will also need to have a PostgreSQL database running.
+To run the application, you will need to have Java and Maven installed. You will also need to have a MySQL database running.
 
 1.  Clone the repository
 2.  Create a database named `devices`
